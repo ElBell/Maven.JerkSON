@@ -33,6 +33,7 @@ public class GroceryReporter {
             addPrices(itemName);
         }
         stringBuilder.append(String.format("Errors         \t \t seen: %d times\n", itemCounts.get("Error")));
+        System.out.println(stringBuilder.toString());
         return stringBuilder.toString();
     }
 

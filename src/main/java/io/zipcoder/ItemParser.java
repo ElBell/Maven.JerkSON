@@ -13,10 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ItemParser {
-    private Pattern namePattern = Pattern.compile("name(.*?)price");
-    private Pattern pricePattern = Pattern.compile("price(.*?)type");
-    private Pattern typePattern = Pattern.compile("type(.*?)expiration");
-    private Pattern expirationPattern = Pattern.compile("expiration(.*?)#");
+    private Pattern overAllPattern = Pattern.compile("[@|!|:|^|%|*](.*?)[;|#|!|^|%|*|@]");
     private Integer errorCount = 0;
 
     public Integer getErrorCount() {
@@ -36,34 +33,29 @@ public class ItemParser {
                 finalItems.add(parseSingleItem(item));
             } catch (ItemParseException e) {
                 errorCount++;
+                System.out.println(item);
             }
         }
         return finalItems;
     }
 
+
     public Item parseSingleItem(String singleItem) throws ItemParseException {
-        singleItem = singleItem.toLowerCase().replaceAll("co0kies", "cookies");
         try {
-            Matcher nameMatcher = namePattern.matcher(singleItem);
-            Matcher priceMatcher = pricePattern.matcher(singleItem);
-            Matcher typeMatcher = typePattern.matcher(singleItem);
-            Matcher expirationMatcher = expirationPattern.matcher(singleItem);
-            nameMatcher.find();
-            typeMatcher.find();
-            priceMatcher.find();
-            expirationMatcher.find();
-            String name = sub(nameMatcher.group(1).toLowerCase());
-            String priceString = sub(priceMatcher.group(1));
+        singleItem = singleItem.toLowerCase();
+            List<String> matches = new ArrayList<>();
+            Matcher matcher = overAllPattern.matcher(singleItem);
+            while (matcher.find()) {
+                matches.add(matcher.group(0).substring(1, matcher.group(0).length() -1 ));
+            }
+            String name = matches.get(0).replace("0", "o");
+            String priceString = matches.get(1);
             Double price = Double.parseDouble(priceString);
-            String type = sub(typeMatcher.group(1).toLowerCase());
-            String expiration = expirationMatcher.group(1).substring(1);
+            String type = matches.get(2);
+            String expiration = matches.get(3);
             return new Item(name, price, type, expiration);
-        } catch (IllegalStateException| StringIndexOutOfBoundsException | NumberFormatException e) {
+        } catch (IllegalStateException | NumberFormatException | IndexOutOfBoundsException e) {
             throw new ItemParseException();
         }
-    }
-
-    private String sub(String string) {
-        return string.substring(1, string.length() - 1);
     }
 }
